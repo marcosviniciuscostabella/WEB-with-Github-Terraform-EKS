@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:  # <== permite "Run workflow"
 
 env:
   TF_VERSION: 1.7.5
@@ -35,18 +36,48 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        working-directory: ./projectotf
-
+        working-directory: ./proyectotf
 
       - name: Terraform Format Check
         run: terraform fmt -check
+        working-directory: ./proyectotf
 
       - name: Terraform Validate
         run: terraform validate
+        working-directory: ./proyectotf
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
+        working-directory: ./proyectotf
+
+      - name: Upload tfplan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ./proyectotf/tfplan
+
+      - name: Show tfplan
+        run: terraform show -no-color tfplan > plan.txt
+        working-directory: ./proyectotf
+
+      - name: Upload plan.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan.txt
+          path: ./proyectotf/plan.txt
+
+      - name: Comment PR with Terraform Plan
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## Terraform Plan 📖
+            ```
+            ${{ steps.show_plan.outputs.plan }}
+            ```
 
       - name: Terraform Apply
         if: github.event_name == 'push'
         run: terraform apply -auto-approve tfplan
+        working-directory: ./proyectotf
