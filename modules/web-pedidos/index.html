@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ToolMaster - Tienda de herramientas online</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+        }
+        .container {
+            padding: 2rem;
+        }
+        .product {
+            border: 1px solid #ccc;
+            background: #fff;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .product button {
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .product button:hover {
+            background-color: #0056b3;
+        }
+        #cart {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ToolMaster - Tienda de Herramientas</h1>
+    </header>
+
+    <div class="container">
+
+        <h2>Catálogo de Productos</h2>
+
+        <div class="product">
+            <span>Taladro eléctrico - 79.99 €</span>
+            <button onclick="addToCart('Taladro eléctrico', 79.99)">Añadir al carrito</button>
+        </div>
+
+        <div class="product">
+            <span>Martillo profesional - 19.99 €</span>
+            <button onclick="addToCart('Martillo profesional', 19.99)">Añadir al carrito</button>
+        </div>
+
+        <div class="product">
+            <span>Juego de destornilladores - 29.99 €</span>
+            <button onclick="addToCart('Juego de destornilladores', 29.99)">Añadir al carrito</button>
+        </div>
+
+        <div class="product">
+            <span>Sierra circular - 129.99 €</span>
+            <button onclick="addToCart('Sierra circular', 129.99)">Añadir al carrito</button>
+        </div>
+
+        <div id="cart">
+            <h2>Carrito de Compras</h2>
+            <ul id="cart-items">
+                <!-- Los artículos se agregarán aquí dinámicamente -->
+            </ul>
+            <p id="total">Total: 0.00 €</p>
+        </div>
+
+    </div>
+
+    <script>
+        let cart = [];
+        function addToCart(product, price) {
+            cart.push({ product, price });
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartItems = document.getElementById('cart-items');
+            const totalElement = document.getElementById('total');
+            cartItems.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.product} - ${item.price.toFixed(2)} €`;
+                cartItems.appendChild(li);
+                total += item.price;
+            });
+            totalElement.textContent = `Total: ${total.toFixed(2)} €`;
+        }
+    </script>
+
+</body>
+</html>

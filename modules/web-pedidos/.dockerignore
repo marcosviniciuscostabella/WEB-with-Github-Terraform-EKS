@@ -1,0 +1,5 @@
+*.tf
+*.tfstate
+*.tfvars
+*.md
+.github
