@@ -18,7 +18,3 @@ output "cluster_certificate_authority_data" {
   value       = module.eks.cluster_certificate_authority_data
 }
 
-output "node_group_role_arn" {
-  description = "IAM Role ARN de los worker nodes"
-  value       = module.eks.node_groups["default"].iam_role_arn
-}
