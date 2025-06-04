@@ -8,17 +8,8 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "vpc_cidr" {
-  description = "CIDR block de la VPC"
-  type        = string
-}
 
 variable "vpc_cidr" {
   description = "CIDR block of the VPC"
-  type        = string
-}
-
-variable "cluster_name" {
-  description = "EKS Cluster name"
   type        = string
 }
