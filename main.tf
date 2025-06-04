@@ -1,110 +1,81 @@
-# main.tf
+terraform {
+  required_version = ">= 1.6"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+
+  backend "s3" {
+    bucket         = "TU-NOMBRE-DE-BUCKET-S3"  # 🚩 Cambia por tu bucket real
+    key            = "terraform/state/eks.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-lock"
+    encrypt        = true
+  }
+}
 
 provider "aws" {
-  region = "eu-west-1"  # Cambia si quieres otra región
+  region = "us-east-1"
 }
 
-# VPC
+# 🚀 MÓDULO VPC (OFICIAL ✅)
 module "vpc" {
-  source = "./modules/vpc/main.tf"
-  # Tus variables aquí
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.5.1"
+
+  name = "my-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  private_subnets = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+  enable_nat_gateway = true
+  single_nat_gateway = true
 }
 
-# Security Group para EKS
-module "security" {
-  source = "./modules/security/main.tf"
-  # Tus variables aquí
-}
-
-# EKS Cluster
+# 🚀 MÓDULO EKS (CORRECTO ✅)
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  cluster_name    = "web-pedidos-cluster"
-  cluster_version = "1.29"
+  source = "./modules/eks"
 
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.public_subnets
+  subnet_ids = module.vpc.private_subnets
+
+  cluster_name    = var.cluster_name
+  cluster_version = var.cluster_version
 
   eks_managed_node_groups = {
     default = {
-      desired_capacity = 2
-      max_capacity     = 3
-      min_capacity     = 1
-      instance_types   = ["t3.medium"]
-    }
-  }
-}
-
-# EKS Auth
-data "aws_eks_cluster" "cluster" {
-  name = module.eks.cluster_name
-}
-
-data "aws_eks_cluster_auth" "cluster" {
-  name = module.eks.cluster_name
-}
-
-# Kubernetes provider
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-}
-
-# Deployment de la web
-resource "kubernetes_deployment" "web_pedidos" {
-  metadata {
-    name = "web-pedidos"
-    labels = {
-      app = "web-pedidos"
+      desired_capacity = var.node_desired_size
+      max_capacity     = var.node_max_size
+      min_capacity     = var.node_min_size
+      instance_types   = [var.node_instance_type]
     }
   }
 
-  spec {
-    replicas = 2
-
-    selector {
-      match_labels = {
-        app = "web-pedidos"
-      }
+  cluster_addons = {
+    coredns = {
+      resolve_conflicts = "OVERWRITE"
     }
-
-    template {
-      metadata {
-        labels = {
-          app = "web-pedidos"
-        }
-      }
-
-      spec {
-        container {
-          name  = "web-pedidos"
-          image = "<TU-REPO-ECR>/web-pedidos:latest"
-          ports {
-            container_port = 80
-          }
-        }
-      }
+    kube-proxy = {
+      resolve_conflicts = "OVERWRITE"
     }
+    vpc-cni = {
+      resolve_conflicts = "OVERWRITE"
+    }
+  }
+
+  tags = {
+    Environment = "dev"
+    Project     = "web-pedidos"
   }
 }
 
-# Service de la web
-resource "kubernetes_service" "web_pedidos_service" {
-  metadata {
-    name = "web-pedidos-service"
-  }
-
-  spec {
-    selector = {
-      app = "web-pedidos"
-    }
-
-    port {
-      port        = 80
-      target_port = 80
-    }
-
-    type = "LoadBalancer"
-  }
+# 🚀 MÓDULO SECURITY (CORRECTO ✅)
+module "security" {
+  source = "./modules/security"
+  vpc_id = module.vpc.vpc_id
 }
