@@ -1,8 +1,7 @@
 terraform {
   backend "s3" {
-    bucket         = "mi-terraform-state"
-    key            = "state/terraform.tfstate"
-    region         = "eu-west-1"
-    dynamodb_table = "terraform-lock"
+    bucket = "mi-terraform-state"
+    key    = "env/terraform.tfstate"
+    region = "us-east-1"   # <-- PON LA REGION CORRECTA DEL BUCKET
   }
 }
