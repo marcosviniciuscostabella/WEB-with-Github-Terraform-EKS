@@ -15,5 +15,5 @@ output "ecr_repository_url" {
 
 output "web_pedidos_service_hostname" {
   description = "DNS del LoadBalancer de la app web-pedidos"
-  value = kubernetes_service.web_pedidos_service.status[0].load_balancer[0].ingress[0].hostname
+  value       = kubernetes_service.web_pedidos_service.status[0].load_balancer[0].ingress[0].hostname
 }
