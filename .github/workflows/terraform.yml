@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:  # <-- Esto te permite lanzar el destroy a mano
 
 jobs:
   terraform:
@@ -20,14 +21,14 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: 1.8.2  # o la versión que uses
+        terraform_version: 1.8.2
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1  # o tu región
+        aws-region: us-east-1
 
     - name: Terraform Init
       run: terraform init
@@ -35,16 +36,16 @@ jobs:
     - name: Terraform Format Check
       run: terraform fmt -check
 
-    - name: Terraform Format Check
-      run: terraform fmt -check  
-
     - name: Terraform Validate
       run: terraform validate
 
     - name: Terraform Plan
       run: terraform plan
 
-    # Terraform Apply solo en push a main
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve
+
+    - name: Terraform Destroy
+      if: github.event_name == 'workflow_dispatch'  # Solo cuando lo lanzas a mano
+      run: terraform destroy -auto-approve
