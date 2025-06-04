@@ -11,18 +11,6 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  backend "s3" {
-    bucket         = "TU-NOMBRE-DE-BUCKET-S3"  # 🚩 Cambia por tu bucket real
-    key            = "terraform/state/eks.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-lock"
-    encrypt        = true
-  }
-}
-
-provider "aws" {
-  region = var.region
 }
 
 # 🚀 MÓDULO VPC (OFICIAL ✅)
@@ -59,6 +47,8 @@ module "eks" {
 
 # 🚀 MÓDULO SECURITY (CORRECTO ✅)
 module "security" {
-  source = "./modules/security"
-  vpc_id = module.vpc.vpc_id
+  source       = "./modules/security"
+  vpc_id       = module.vpc.vpc_id
+  vpc_cidr     = module.vpc.vpc_cidr_block
+  cluster_name = var.eks_cluster_name
 }
