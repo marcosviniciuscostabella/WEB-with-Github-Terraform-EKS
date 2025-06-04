@@ -1,3 +1,7 @@
+provider "aws" {
+  region = "us-east-1"
+}
+
 terraform {
   required_version = ">= 1.6"
 
@@ -17,8 +21,41 @@ terraform {
   }
 }
 
-provider "aws" {
-  region = "us-east-1"
+
+
+variable "cluster_name" {
+  description = "The name of the EKS cluster"
+  type        = string
+}
+
+variable "cluster_version" {
+  description = "The Kubernetes version for the EKS cluster"
+  type        = string
+  default     = "1.27"
+}
+
+variable "node_desired_size" {
+  description = "Desired number of worker nodes"
+  type        = number
+  default     = 2
+}
+
+variable "node_max_size" {
+  description = "Maximum number of worker nodes"
+  type        = number
+  default     = 3
+}
+
+variable "node_min_size" {
+  description = "Minimum number of worker nodes"
+  type        = number
+  default     = 1
+}
+
+variable "node_instance_type" {
+  description = "EC2 instance type for worker nodes"
+  type        = string
+  default     = "t3.medium"
 }
 
 # 🚀 MÓDULO VPC (OFICIAL ✅)
@@ -47,35 +84,16 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
-  eks_managed_node_groups = {
-    default = {
-      desired_capacity = var.node_desired_size
-      max_capacity     = var.node_max_size
-      min_capacity     = var.node_min_size
-      instance_types   = [var.node_instance_type]
-    }
-  }
-
-  cluster_addons = {
-    coredns = {
-      resolve_conflicts = "OVERWRITE"
-    }
-    kube-proxy = {
-      resolve_conflicts = "OVERWRITE"
-    }
-    vpc-cni = {
-      resolve_conflicts = "OVERWRITE"
-    }
-  }
-
-  tags = {
-    Environment = "dev"
-    Project     = "web-pedidos"
-  }
+  node_desired_size  = var.node_desired_size
+  node_max_size      = var.node_max_size
+  node_min_size      = var.node_min_size
+  node_instance_type = var.node_instance_type
 }
 
 # 🚀 MÓDULO SECURITY (CORRECTO ✅)
 module "security" {
-  source = "./modules/security"
-  vpc_id = module.vpc.vpc_id
+  source      = "./modules/security"
+  vpc_id      = module.vpc.vpc_id
+  vpc_cidr    = module.vpc.vpc_cidr_block
+  cluster_name = var.cluster_name
 }
